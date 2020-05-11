@@ -1,51 +1,57 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Lotr.Helpers;
+using Microsoft.EntityFrameworkCore;
 
-namespace lotr
+namespace Lotr
 {
-    public class Startup
+  public static class Extensions
+  {
+    public static void ConfigureMySqlContext(this IServiceCollection services, IConfiguration config)
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
-        public IConfiguration Configuration { get; }
-
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
-            services.AddControllers();
-        }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseHttpsRedirection();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
+      var connectionString = config["ConnectionStrings:DefaultConnection"];
+      services.AddDbContext<LotrContext>(o => o.UseMySql(connectionString));
     }
+  }
+
+  public class Startup
+  {
+
+    private readonly IConfiguration _configuration;
+
+    public Startup(IConfiguration configuration)
+    {
+      _configuration = configuration;
+    }
+    public void ConfigureServices(IServiceCollection services)
+    {
+      services.AddCors();
+      services.AddControllers();
+
+      services.ConfigureMySqlContext(_configuration);
+
+
+    }
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+      app.UseStaticFiles();
+
+      app.UseRouting();
+
+      app.UseCors(x => x
+          .AllowAnyOrigin()
+          .AllowAnyMethod()
+          .AllowAnyHeader());
+
+      app.UseAuthentication();
+      app.UseAuthorization();
+
+      app.UseEndpoints(endpoints =>
+      {
+        endpoints.MapControllers();
+      });
+    }
+  }
 }
