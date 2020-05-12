@@ -5,6 +5,10 @@ namespace Lotr.Models
   public class CreateCharacter
   {
     [Required]
+    public int Armor { get; set; }
+    [Required]
+    public int Magic { get; set; }
+    [Required]
     public int Health { get; set; }
     [Required]
     public int Attack { get; set; }

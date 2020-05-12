@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Lotr.Helpers;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace Lotr
 {
@@ -29,6 +30,7 @@ namespace Lotr
     {
       services.AddCors();
       services.AddControllers();
+      services.AddAutoMapper(typeof(Startup));
 
       services.ConfigureMySqlContext(_configuration);
 
@@ -44,9 +46,6 @@ namespace Lotr
           .AllowAnyOrigin()
           .AllowAnyMethod()
           .AllowAnyHeader());
-
-      app.UseAuthentication();
-      app.UseAuthorization();
 
       app.UseEndpoints(endpoints =>
       {

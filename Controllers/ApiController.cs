@@ -9,7 +9,7 @@ using Lotr.Helpers;
 
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
-namespace TapRoomApi.Controllers
+namespace Lotr.Controllers
 {
   [ApiController]
   [Route("[controller]")]
@@ -18,8 +18,10 @@ namespace TapRoomApi.Controllers
     private IMapper _mapper;
     private readonly ILogger<ApiController> _logger;
     private readonly LotrContext _db;
-    public ApiController(LotrContext db)
+    public ApiController(LotrContext db, ILogger<ApiController> logger, IMapper mapper)
     {
+      _mapper = mapper;
+      _logger = logger;
       _db = db;
     }
 
@@ -35,6 +37,32 @@ namespace TapRoomApi.Controllers
     {
       Character model = await _db.Characters.FirstOrDefaultAsync(x => x.Id == id);
       return Ok(model);
+    }
+    [HttpPost("characters")]
+    public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacter model)
+    {
+      try
+      {
+        if (model == null)
+        {
+          return BadRequest("Beer object is null");
+        }
+        if (!ModelState.IsValid)
+        {
+          return BadRequest("Invalid model object");
+        }
+
+        Character entity = _mapper.Map<Character>(model);
+        await _db.Characters.AddAsync(entity);
+        await _db.SaveChangesAsync();
+        return Ok();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError($"Error in CreateCharacter action: {ex.Message}");
+        return StatusCode(500, "Internal server error");
+      }
+
     }
 
     [HttpPut("characters/{id}")]
